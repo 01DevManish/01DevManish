@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Image</title>
+    <style>
+        /* Dark theme styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        input, button {
+            padding: 15px;
+            font-size: 16px;
+            margin: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 500px;
+            background-color: #1c1c1c;
+            color: #ffffff;
+        }
+
+        input:focus, button:focus {
+            outline: none;
+            border-color: #ff4081;
+        }
+
+        button {
+            background-color: #6200ea;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #3700b3;
+        }
+
+        #loading {
+            display: none;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff4081;
+            margin-top: 20px;
+        }
+
+        #imageContainer img {
+            margin-top: 20px;
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 8px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Spinner animation */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6200ea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin-top: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Text to Image</h1>
+
+        <input type="text" id="inputText" placeholder="Enter text for image generation" />
+        <button onclick="generateImage()">Generate Image</button>
+
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Loading image...</p>
+        </div>
+
+        <div id="imageContainer"></div>
+    </div>
+
+    <script>
+        const apiKey = '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'; // Replace with your Hugging Face API Key
+        const apiUrl = 'https://api-inference.huggingface.co/models/ZB-Tech/Text-to-Image'; // Hugging Face model URL for text-to-image
+
+        async function query(data) {
+            const response = await fetch(apiUrl, {
+                headers: {
+                    Authorization: `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                method: 'POST',
+                body: JSON.stringify(data),
+            });
+            const result = await response.blob();
+            return result;
+        }
+
+        async function generateImage() {
+            const inputText = document.getElementById('inputText').value;
+            if (!inputText) {
+                alert('Please enter some text.');
+                return;
+            }
+
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('imageContainer').innerHTML = ''; // Clear previous image
+
+            // Create data object with the user input
+            const data = {
+                inputs: inputText
+            };
+
+            try {
+                // Send the request to Hugging Face API
+                const imageBlob = await query(data);
+
+                // Convert the blob to a URL and display it
+                const imageUrl = URL.createObjectURL(imageBlob);
+                document.getElementById('imageContainer').innerHTML = `<img src="${imageUrl}" alt="Generated Image"/>`;
+            } catch (error) {
+                console.error('Error generating image:', error);
+                alert('There was an error generating the image.');
+            } finally {
+                // Hide loading indicator once the image is loaded
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+    </script>
+
+</body>
+</html>
